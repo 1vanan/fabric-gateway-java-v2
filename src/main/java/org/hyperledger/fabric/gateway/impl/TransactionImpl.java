@@ -55,6 +55,8 @@ public final class TransactionImpl implements Transaction {
     private Collection<Peer> endorsingPeers = null;
     private final TransactionContext transactionContext;
 
+    private final SendingConfirmationServiceImpl sendingConfirmationService = new SendingConfirmationServiceImpl();
+
     TransactionImpl(final ContractImpl contract, final String name) {
         this.contract = contract;
         this.name = name;
@@ -111,6 +113,34 @@ public final class TransactionImpl implements Transaction {
         } catch (ContractException e) {
             e.setProposalResponses(proposalResponses);
             throw e;
+        }
+    }
+
+    @Override
+    public byte[] submitBasedOnModel(final String analyticsPath, final int modelId,
+                                     final ProposalResponse correctResponse, final String... args)
+            throws ContractException, TimeoutException, InterruptedException {
+        Collection<ProposalResponse> proposalResponses = endorseTransactionBasedOnModel(analyticsPath, modelId, correctResponse, args);
+        Collection<ProposalResponse> validResponses = validatePeerResponses(proposalResponses);
+
+        try {
+            return commitTransaction(validResponses);
+        } catch (ContractException e) {
+            e.setProposalResponses(proposalResponses);
+            throw e;
+        }
+    }
+
+    private Collection<ProposalResponse> endorseTransactionBasedOnModel(final String analyticsPath, final int modelId,
+                                                                        final ProposalResponse correctResponse,
+                                                                        final String... args) {
+        try {
+            TransactionProposalRequest request = newProposalRequest(args);
+
+            return sendingConfirmationService.sendForConfirmationCustomId(channel, analyticsPath, modelId,
+                    correctResponse, request, channel.getPeers());
+        } catch (InvalidArgumentException | ProposalException e) {
+            throw new GatewayRuntimeException(e);
         }
     }
 
