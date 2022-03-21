@@ -68,7 +68,8 @@ public interface Contract {
      *
      * @param analyticsPath Path to the model.
      * @param modelId Id of the model according to which the transaction will be sent.
-     * @param correctResponse Response on the transaction which is considered as a correct one.
+     * @param orgWithHighestProbabilityToApprove Name of organization that has the highest probability to approve the
+     *                                           transaction.
      * @param name Transaction function name.
      * @param args Transaction function arguments.
      * @return Payload response from the transaction function.
@@ -80,7 +81,7 @@ public interface Contract {
      * @see <a href="https://hyperledger-fabric.readthedocs.io/en/release-1.4/developapps/application.html#submit-transaction">Developing Fabric Applications - Submit transaction</a>
      */
     byte[] submitTransactionBasedOnModel(final String analyticsPath, final int modelId,
-                                         final ProposalResponse correctResponse, String name, String... args)
+                                         final String orgWithHighestProbabilityToApprove, String name, String... args)
             throws ContractException, TimeoutException, InterruptedException;
 
     /**

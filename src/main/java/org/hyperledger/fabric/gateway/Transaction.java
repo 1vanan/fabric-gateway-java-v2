@@ -98,7 +98,7 @@ public interface Transaction {
     byte[] submit(String... args) throws ContractException, TimeoutException, InterruptedException;
 
     byte[] submitBasedOnModel(String analyticsPath, int modelId,
-                              ProposalResponse correctResponse, final String... args) throws ContractException, TimeoutException, InterruptedException;
+                              String orgWithHighestProbabilityToApprove, final String... args) throws ContractException, TimeoutException, InterruptedException;
 
     /**
      * Evaluate a transaction function and return its results.

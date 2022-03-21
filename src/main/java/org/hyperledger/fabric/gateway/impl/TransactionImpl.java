@@ -8,6 +8,7 @@ package org.hyperledger.fabric.gateway.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -118,9 +119,9 @@ public final class TransactionImpl implements Transaction {
 
     @Override
     public byte[] submitBasedOnModel(final String analyticsPath, final int modelId,
-                                     final ProposalResponse correctResponse, final String... args)
+                                     final String orgWithHighestProbabilityToApprove, final String... args)
             throws ContractException, TimeoutException, InterruptedException {
-        Collection<ProposalResponse> proposalResponses = endorseTransactionBasedOnModel(analyticsPath, modelId, correctResponse, args);
+        Collection<ProposalResponse> proposalResponses = endorseTransactionBasedOnModel(analyticsPath, modelId, orgWithHighestProbabilityToApprove, args);
         Collection<ProposalResponse> validResponses = validatePeerResponses(proposalResponses);
 
         try {
@@ -132,13 +133,20 @@ public final class TransactionImpl implements Transaction {
     }
 
     private Collection<ProposalResponse> endorseTransactionBasedOnModel(final String analyticsPath, final int modelId,
-                                                                        final ProposalResponse correctResponse,
+                                                                        final String orgWithHighestProbabilityToApprove,
                                                                         final String... args) {
         try {
             TransactionProposalRequest request = newProposalRequest(args);
 
+          ProposalResponse fairResponse = channel.sendTransactionProposal(request, Collections.singleton(channel.getPeers()
+                    .stream()
+                    .filter(p->p.getName().equals(orgWithHighestProbabilityToApprove))
+                    .findAny()
+                    .get()))
+                  .iterator().next();
+
             return sendingConfirmationService.sendForConfirmationCustomId(channel, analyticsPath, modelId,
-                    correctResponse, request, channel.getPeers());
+                    fairResponse, request, channel.getPeers());
         } catch (InvalidArgumentException | ProposalException e) {
             throw new GatewayRuntimeException(e);
         }

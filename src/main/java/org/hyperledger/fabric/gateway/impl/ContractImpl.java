@@ -52,8 +52,8 @@ public final class ContractImpl implements Contract, AutoCloseable {
     }
 
     @Override
-    public byte[] submitTransactionBasedOnModel(String analyticsPath, int modelId, ProposalResponse correctResponse, String name, String... args) throws ContractException, TimeoutException, InterruptedException {
-        return createTransaction(name).submitBasedOnModel(analyticsPath, modelId, correctResponse, args);
+    public byte[] submitTransactionBasedOnModel(String analyticsPath, int modelId, String orgWithHighestProbabilityToApprove, String name, String... args) throws ContractException, TimeoutException, InterruptedException {
+        return createTransaction(name).submitBasedOnModel(analyticsPath, modelId, orgWithHighestProbabilityToApprove, args);
     }
 
     @Override
