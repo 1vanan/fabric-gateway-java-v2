@@ -19,6 +19,7 @@ import org.hyperledger.fabric.gateway.ContractException;
 import org.hyperledger.fabric.gateway.GatewayRuntimeException;
 import org.hyperledger.fabric.gateway.Transaction;
 import org.hyperledger.fabric.gateway.impl.query.QueryImpl;
+import org.hyperledger.fabric.gateway.model.AgreementResponseDTO;
 import org.hyperledger.fabric.gateway.spi.CommitHandler;
 import org.hyperledger.fabric.gateway.spi.CommitHandlerFactory;
 import org.hyperledger.fabric.gateway.spi.Query;
@@ -117,24 +118,38 @@ public final class TransactionImpl implements Transaction {
         }
     }
 
-    @Override
-    public byte[] submitBasedOnModel(final String analyticsPath, final int modelId,
-                                     final String orgWithHighestProbabilityToApprove, final String... args)
-            throws ContractException, TimeoutException, InterruptedException {
-        Collection<ProposalResponse> proposalResponses = endorseTransactionBasedOnModel(analyticsPath, modelId, orgWithHighestProbabilityToApprove, args);
-        Collection<ProposalResponse> validResponses = validatePeerResponses(proposalResponses);
+  @Override
+  public byte[] submitBasedOnModel(
+      final String analyticsPath,
+      final int modelId,
+      final String orgWithHighestProbabilityToApprove,
+      final String... args)
+      throws ContractException, TimeoutException, InterruptedException {
+    AgreementResponseDTO agreementResponseDTO =
+        endorseTransactionBasedOnModel(
+            analyticsPath, modelId, orgWithHighestProbabilityToApprove, args);
 
-        try {
-            return commitTransaction(validResponses);
-        } catch (ContractException e) {
-            e.setProposalResponses(proposalResponses);
-            throw e;
-        }
+    if (agreementResponseDTO.isAgreementReached()) {
+      Collection<ProposalResponse> proposalResponses = agreementResponseDTO.getResponses();
+      Collection<ProposalResponse> validResponses = validatePeerResponses(proposalResponses);
+
+      try {
+        return commitTransaction(validResponses);
+      } catch (ContractException e) {
+        e.setProposalResponses(proposalResponses);
+        throw e;
+      }
+    } else {
+      System.out.println(
+          "Agreement was not reached by endorsers. Transaction is not sent for confirmation.");
+
+      return null;
     }
+  }
 
-    private Collection<ProposalResponse> endorseTransactionBasedOnModel(final String analyticsPath, final int modelId,
-                                                                        final String orgWithHighestProbabilityToApprove,
-                                                                        final String... args) {
+    private AgreementResponseDTO endorseTransactionBasedOnModel(final String analyticsPath, final int modelId,
+                                                                final String orgWithHighestProbabilityToApprove,
+                                                                final String... args) {
         try {
             TransactionProposalRequest request = newProposalRequest(args);
 
