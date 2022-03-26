@@ -2,6 +2,7 @@ package org.hyperledger.fabric.gateway.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hyperledger.fabric.gateway.model.AgreementResponseDTO;
+import org.hyperledger.fabric.protos.peer.ProposalResponsePackage;
 import org.hyperledger.fabric.sdk.Channel;
 import org.hyperledger.fabric.sdk.Peer;
 import org.hyperledger.fabric.sdk.ProposalResponse;
@@ -136,21 +137,37 @@ public class SendingConfirmationServiceImpl {
       throws InvalidArgumentException, ProposalException {
 
     String orgToSend = organizations.get(0);
+
     Peer peerToSend =
-        endorsingPeers.stream().filter(e -> e.getName().equals(orgToSend)).findAny().get();
+        endorsingPeers.stream().filter(e -> e.getName().equals(orgToSend))
+                .findAny()
+                .orElseThrow(() -> new InvalidArgumentException(String.format("Cannot find organization with name %s",
+                        orgToSend)));
 
     int requestsNumToOrg = numberOfRequestsPerOrganization.get(orgToSend);
+
+    logger.info(String.format("Sending for confirmation to %s.", orgToSend));
 
     numberOfRequestsPerOrganization.put(orgToSend, requestsNumToOrg + 1);
     Collection<ProposalResponse> proposalResponses =
         channel.sendTransactionProposal(request, Collections.singleton(peerToSend));
 
-    int reply =
-        Arrays.equals(
-                proposalResponses.iterator().next().getChaincodeActionResponsePayload(),
-                correctResponse.getChaincodeActionResponsePayload())
-            ? 1
-            : 0;
+    int reply;
+    ProposalResponsePackage.Response resp =
+        proposalResponses.iterator().next().getProposalResponse().getResponse();
+
+    int respStatus = resp.getStatus();
+
+    if (correctResponse != null) {
+      reply =
+              respStatus == 200 &&
+                      resp.getPayload().equals(correctResponse.getProposalResponse().getResponse().getPayload())
+              ? 1
+              : 0;
+    } else {
+
+      reply = respStatus == 200 && resp.getPayload().toString().contains("true") ? 1 : 0;
+    }
 
     if (reply == 1) {
       consensusResponseDTO.getResponses().add(proposalResponses.iterator().next());

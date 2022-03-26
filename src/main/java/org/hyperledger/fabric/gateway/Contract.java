@@ -84,6 +84,18 @@ public interface Contract {
                                          final String orgWithHighestProbabilityToApprove, String name, String... args)
             throws ContractException, TimeoutException, InterruptedException;
 
+    byte[] submitTransactionBasedOnModelWithBinaryResponse(String analyticsPath, int modelId,
+                                                           String name, String... args)
+            throws ContractException, TimeoutException, InterruptedException;
+
+    byte[] submitTransactionBasedOnModelWithBinaryResponse(String analyticsPath, int modelId, Long waitTimeout,
+                                                           String name, String... args)
+            throws ContractException, TimeoutException, InterruptedException;
+
+    byte[] submitTransactionBasedOnModel(String analyticsPath, int modelId, Long waitTimeout,
+                                         String orgWithHighestProbabilityToApprove, String name, String... args)
+            throws ContractException, TimeoutException, InterruptedException;
+
     /**
      * Evaluate a transaction function and return its results.
      * The transaction function {@code name}

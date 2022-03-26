@@ -23,7 +23,6 @@ import org.hyperledger.fabric.gateway.impl.event.Listeners;
 import org.hyperledger.fabric.gateway.impl.event.ReplayListenerSession;
 import org.hyperledger.fabric.gateway.spi.Checkpointer;
 import org.hyperledger.fabric.sdk.BlockEvent;
-import org.hyperledger.fabric.sdk.ProposalResponse;
 
 public final class ContractImpl implements Contract, AutoCloseable {
     private final NetworkImpl network;
@@ -52,8 +51,34 @@ public final class ContractImpl implements Contract, AutoCloseable {
     }
 
     @Override
-    public byte[] submitTransactionBasedOnModel(String analyticsPath, int modelId, String orgWithHighestProbabilityToApprove, String name, String... args) throws ContractException, TimeoutException, InterruptedException {
-        return createTransaction(name).submitBasedOnModel(analyticsPath, modelId, orgWithHighestProbabilityToApprove, args);
+    public byte[] submitTransactionBasedOnModelWithBinaryResponse(String analyticsPath, int modelId,
+                                                                  String name, String... args)
+            throws ContractException, TimeoutException, InterruptedException {
+        return createTransaction(name).submitBasedOnModelWithBinaryResponse(analyticsPath, modelId, args);
+    }
+
+    @Override
+    public byte[] submitTransactionBasedOnModelWithBinaryResponse(String analyticsPath, int modelId, Long waitTimeout,
+                                                                  String name, String... args)
+            throws ContractException, TimeoutException, InterruptedException {
+        return createTransaction(name).submitBasedOnModelWithBinaryResponse(analyticsPath, modelId,
+                waitTimeout, args);
+    }
+
+    @Override
+    public byte[] submitTransactionBasedOnModel(String analyticsPath, int modelId,
+                                                String orgWithHighestProbabilityToApprove, String name, String... args)
+            throws ContractException, TimeoutException, InterruptedException {
+        return createTransaction(name).submitBasedOnModel(analyticsPath, modelId, orgWithHighestProbabilityToApprove,
+                args);
+    }
+
+    @Override
+    public byte[] submitTransactionBasedOnModel(String analyticsPath, int modelId, Long waitTimeout,
+                                                String orgWithHighestProbabilityToApprove, String name, String... args)
+            throws ContractException, TimeoutException, InterruptedException {
+        return createTransaction(name).submitBasedOnModel(analyticsPath, modelId, orgWithHighestProbabilityToApprove,
+                waitTimeout, args);
     }
 
     @Override

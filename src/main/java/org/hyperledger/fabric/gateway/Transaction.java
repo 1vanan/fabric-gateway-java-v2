@@ -97,8 +97,111 @@ public interface Transaction {
      */
     byte[] submit(String... args) throws ContractException, TimeoutException, InterruptedException;
 
+    /**
+     * Submit a transaction to the ledger. Submission of a transaction is based on the model.
+     * Model builds based on the algorithm similar to https://arxiv.org/abs/2112.02397
+     * After that there is a check that agreement is reached on the transaction.
+     * The transaction function represented by this object
+     * will be evaluated on the endorsing peers and then submitted to the ordering service
+     * for committing to the ledger.
+     *
+     * @param analyticsPath Path to the file with analyzation results and the models.
+     * @param modelId Id of the mode. Sending of a transaction will happen based on this model.
+     * @param args Transaction function arguments.
+     * @param orgWithHighestProbabilityToApprove Organization with a highest probability of giving a correct response.
+     *                                           Based on the response from this organization model considers
+     *                                           correctness of other responses.
+     * @return Payload response from the transaction function.
+     * @throws ContractException       if the transaction is rejected.
+     * @throws TimeoutException        if the transaction was successfully submitted to the orderer but
+     *                                 timed out before a commit event was received from peers.
+     * @throws InterruptedException    if the current thread is interrupted while waiting.
+     * @throws GatewayRuntimeException if an underlying infrastructure failure occurs.
+     */
     byte[] submitBasedOnModel(String analyticsPath, int modelId,
-                              String orgWithHighestProbabilityToApprove, final String... args) throws ContractException, TimeoutException, InterruptedException;
+                                               String orgWithHighestProbabilityToApprove, final String... args)
+            throws ContractException, TimeoutException, InterruptedException;
+
+    /**
+     * Submit a transaction to the ledger. Submission of a transaction is based on the model.
+     * Model builds based on the algorithm similar to https://arxiv.org/abs/2112.02397
+     * This model considers that organization can reply in their message was a transaction accepted by them or not.
+     * After that there is a check that agreement is reached on the transaction.
+     * The transaction function represented by this object
+     * will be evaluated on the endorsing peers and then submitted to the ordering service
+     * for committing to the ledger.
+     *
+     * @param analyticsPath Path to the file with analyzation results and the models.
+     * @param modelId Id of the mode. Sending of a transaction will happen based on this model.
+     * @param args Transaction function arguments.
+     * @return Payload response from the transaction function.
+     * @throws ContractException       if the transaction is rejected.
+     * @throws TimeoutException        if the transaction was successfully submitted to the orderer but
+     *                                 timed out before a commit event was received from peers.
+     * @throws InterruptedException    if the current thread is interrupted while waiting.
+     * @throws GatewayRuntimeException if an underlying infrastructure failure occurs.
+     */
+    byte[] submitBasedOnModelWithBinaryResponse(
+            String analyticsPath,
+            int modelId,
+            String... args)
+            throws ContractException, TimeoutException, InterruptedException;
+
+    /**
+     * Submit a transaction to the ledger. Submission of a transaction is based on the model.
+     * Model builds based on the algorithm similar to https://arxiv.org/abs/2112.02397
+     * This model considers that organization can reply in their message was a transaction accepted by them or not.
+     * After that there is a check that agreement is reached on the transaction.
+     * The transaction function represented by this object
+     * will be evaluated on the endorsing peers and then submitted to the ordering service
+     * for committing to the ledger.
+     *
+     * @param analyticsPath Path to the file with analyzation results and the models.
+     * @param modelId Id of the mode. Sending of a transaction will happen based on this model.
+     * @param waitTimeout Waiting timeout of a response from organization. If timeout is reached, then the model
+     *                    considers it as incorrect response.
+     * @param args Transaction function arguments.
+     * @return Payload response from the transaction function.
+     * @throws ContractException       if the transaction is rejected.
+     * @throws TimeoutException        if the transaction was successfully submitted to the orderer but
+     *                                 timed out before a commit event was received from peers.
+     * @throws InterruptedException    if the current thread is interrupted while waiting.
+     * @throws GatewayRuntimeException if an underlying infrastructure failure occurs.
+     */
+    byte[] submitBasedOnModelWithBinaryResponse(
+            String analyticsPath,
+            int modelId,
+            Long waitTimeout,
+            String... args)
+            throws ContractException, TimeoutException, InterruptedException;
+
+    /**
+     * Submit a transaction to the ledger. Submission of a transaction is based on the model.
+     * Model builds based on the algorithm similar to https://arxiv.org/abs/2112.02397
+     * After that there is a check that agreement is reached on the transaction.
+     * The transaction function represented by this object
+     * will be evaluated on the endorsing peers and then submitted to the ordering service
+     * for committing to the ledger.
+     *
+     * @param analyticsPath Path to the file with analyzation results and the models.
+     * @param modelId Id of the mode. Sending of a transaction will happen based on this model.
+     * @param orgWithHighestProbabilityToApprove Organization with a highest probability of giving a correct response.
+     *                                           Based on the response from this organization model considers
+     *                                           correctness of other responses.
+     * @param waitTimeout Waiting timeout of a response from organization. If timeout is reached, then the model
+     *                    considers it as incorrect response.
+     * @param args Transaction function arguments.
+     * @return Payload response from the transaction function.
+     * @throws ContractException       if the transaction is rejected.
+     * @throws TimeoutException        if the transaction was successfully submitted to the orderer but
+     *                                 timed out before a commit event was received from peers.
+     * @throws InterruptedException    if the current thread is interrupted while waiting.
+     * @throws GatewayRuntimeException if an underlying infrastructure failure occurs.
+     */
+    byte[] submitBasedOnModel(String analyticsPath, int modelId,
+                                               String orgWithHighestProbabilityToApprove, Long waitTimeout,
+                                               final String... args)
+            throws ContractException, TimeoutException, InterruptedException;
 
     /**
      * Evaluate a transaction function and return its results.
